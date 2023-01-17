@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: viewtask-app-qa
+  namespace: qa-viewtask
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: viewtask-app-qa
+  template:
+    metadata:
+      labels:
+        app: viewtask-app-qa
+    spec:
+      containers:
+      - name: viewtask-app-qa
+        image: 316201455367.dkr.ecr.ap-south-1.amazonaws.com/main:1ViewTask_QA
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+         - name: efs-pvc
+           mountPath: /app/wwwroot/images
+           subPath: app_images
+      volumes:
+        - name: efs-pvc
+          persistentVolumeClaim:
+             claimName: qa-storage-claim
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-app-qa
+  namespace: qa-viewtask
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-app-qa
+  template:
+    metadata:
+      labels:
+        app: api-app-qa
+    spec:
+      containers:
+      - name: api-app-qa
+        image: 316201455367.dkr.ecr.ap-south-1.amazonaws.com/main:restapi_qa
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-api-app-qa
+  namespace: qa-viewtask
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-api-app-qa
+  template:
+    metadata:
+      labels:
+        app: auth-api-app-qa
+    spec:
+      containers:
+       - name: auth-api-app-qa
+         image: 316201455367.dkr.ecr.ap-south-1.amazonaws.com/main:AuthApp_QA
+         imagePullPolicy: Always
+         ports:
+         - containerPort: 3000
+         volumeMounts:
+          - name: efs-pvc
+            mountPath: /usr/src/app/files
+            subPath: authapi_files
+      volumes:
+        - name: efs-pvc
+          persistentVolumeClaim:
+             claimName: qa-storage-claim
+
