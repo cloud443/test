@@ -1,3 +1,4 @@
+---
 - stage: Deploy
   displayName: Deploy to EKS
   jobs:
