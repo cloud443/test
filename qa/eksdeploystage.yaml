@@ -1,8 +1,11 @@
+# Add a trigger to listen for push events on the `main` branch
 trigger:
 - branches:
   - cloud443-patch-1
   paths:
   - qa/eksdeploystage.yaml
+
+# Modify the `Deploy to EKS` stage to run automatically
 - stage: Deploy
   displayName: Deploy to EKS
   jobs:
