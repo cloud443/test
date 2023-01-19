@@ -1,4 +1,8 @@
----
+trigger:
+- branches:
+  - cloud443-patch-1
+  paths:
+  - qa/eksdeploystage.yaml
 - stage: Deploy
   displayName: Deploy to EKS
   jobs:
