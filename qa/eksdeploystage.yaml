@@ -1,0 +1,34 @@
+- stage: Deploy
+  displayName: Deploy to EKS
+  jobs:
+  - job: Deploy
+    displayName: Deploy to EKS
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Bash@3
+      displayName: Configure kubectl for EKS
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Install AWS CLI and kubectl
+          apt-get update
+          apt-get install -y awscli
+          curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -L -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          mv kubectl /usr/local/bin/
+          
+          # Configure AWS CLI
+          aws configure set region $(AWS_REGION)
+          aws configure set aws_access_key_id $(AWS_ACCESS_KEY)
+          aws configure set aws_secret_access_key $(AWS_SECRET_KEY)
+          
+          # Configure kubectl for EKS
+          aws eks --region $(AWS_REGION) update-kubeconfig --name $(EKS_CLUSTER_NAME)
+    - task: Bash@3
+      displayName: Deploy to EKS
+      inputs:
+        targetType: 'inline'
+        script: |
+          kubectl set image deployment/$(DEPLOYMENT_NAME) $(CONTAINER_NAME)=$(DOCKER_REPOSITORY_NAME):latest -n $(NAMESPACE)
+          kubectl rollout restart -n $(NAMESPACE) $(DEPLOYMENT_NAME)
