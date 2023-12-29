@@ -2,12 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [master]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Image version'
-        required: true
+    branches:
+      - main
 
 env:
   REGISTRY: "your-docker-hub-username"
