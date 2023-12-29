@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Image version'
+        required: true
+
+env:
+  REGISTRY: "your-docker-hub-username"
+  IMAGE_NAME: "your-docker-image-name"
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  REMOTE_SERVER_IP: "your-remote-server-ip"
+  REMOTE_SERVER_USER: "your-remote-server-username"
+  REMOTE_SERVER_PASSWORD: ${{ secrets.REMOTE_SERVER_PASSWORD }}
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+        
+      - name: Build container image
+        run: docker build -t $REGISTRY/$IMAGE_NAME:$GITHUB_SHA .
+
+      - name: Log in to Docker Hub
+        run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+
+      - name: Push image to Docker Hub
+        run: docker push $REGISTRY/$IMAGE_NAME:$GITHUB_SHA
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build_and_push
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+
+      - name: Copy Docker Compose file to remote server
+        run: scp docker-compose.yml $REMOTE_SERVER_USER@$REMOTE_SERVER_IP:~/docker-compose.yml
+
+      - name: Deploy to remote server
+        uses: appleboy/ssh-action@v1.0.1
+        with:
+          host: $REMOTE_SERVER_IP
+          username: $REMOTE_SERVER_USER
+          password: $REMOTE_SERVER_PASSWORD
+          script: |
+            cd /home/teleman-backend-dev
+            sudo docker-compose up -d
